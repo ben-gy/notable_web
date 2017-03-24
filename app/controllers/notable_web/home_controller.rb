@@ -55,11 +55,15 @@ module NotableWeb
     end
 
     def slow_actions
+      params.permit!
+      
       @top_actions = slow_requests.where("created_at > ?", 3.days.ago).select("action, SUM(request_time) AS total_time, AVG(request_time) AS average_time, COUNT(*) AS requests, SUM(CASE WHEN status = 503 THEN 1 ELSE 0 END) AS timeouts").group("action").order("total_time DESC").limit(50)
       @total_time_by_day = [{name: "Total Time (min)", data: slow_requests.group_by_day(:created_at, last: 14).sum("request_time").map{|k, v| [k, (v / 60.0).round] }}]
     end
 
     def slow_action
+      params.permit!
+      
       @action = params[:action_name]
       @total_time_by_day = [{name: "Total Time (min)", data: slow_requests.where(action: @action).group_by_day(:created_at, last: 14).sum("request_time").map{|k, v| [k, (v / 60.0).round] }}]
     end
@@ -67,6 +71,8 @@ module NotableWeb
     protected
 
     def slow_requests
+      params.permit!
+      
       Notable::Request.where("action IS NOT NULL AND (status = 503 OR note_type = 'Slow Request')")
     end
 
