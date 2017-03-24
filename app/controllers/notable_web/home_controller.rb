@@ -5,6 +5,8 @@ module NotableWeb
     http_basic_authenticate_with name: ENV["NOTABLE_USERNAME"], password: ENV["NOTABLE_PASSWORD"] if ENV["NOTABLE_PASSWORD"]
 
     def index
+      params.permit!
+      
       where = Hash[ params.slice(:status, :note_type, :note, :user_id, :user_type).permit!.map{|k,v| ["notable_requests.#{k}", v] } ]
 
       page_method_name = Kaminari.config.page_method_name
@@ -35,6 +37,8 @@ module NotableWeb
     end
 
     def users
+      params.permit!
+      
       requests = Notable::Request.where("created_at > ?", 1.day.ago)
       # yuck make this better
       user_ids = []
